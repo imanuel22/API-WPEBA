@@ -13,6 +13,11 @@ return new class extends Migration
     {
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->timestamp('registration_date')->nullable();
+            $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
+            $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
             $table->timestamps();
         });
     }
