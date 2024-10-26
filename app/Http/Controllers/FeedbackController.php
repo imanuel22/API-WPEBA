@@ -1,66 +1,50 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\Feedback;
-use App\Http\Requests\StoreFeedbackRequest;
-use App\Http\Requests\UpdateFeedbackRequest;
+use Illuminate\Http\Request;
 
 class FeedbackController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return Feedback::all();
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function store(Request $request)
     {
-        //
+        $request->validate([
+            'event_id' => 'required|exists:events,id',
+            'user_id' => 'required|exists:users,id',
+            'feedback_text' => 'required|string',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        $feedback = Feedback::create($request->all());
+
+        return response()->json($feedback, 201);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(StoreFeedbackRequest $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     */
     public function show(Feedback $feedback)
     {
-        //
+        return response()->json($feedback);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Feedback $feedback)
+    public function update(Request $request, Feedback $feedback)
     {
-        //
+        $request->validate([
+            'feedback_text' => 'string',
+            'rating' => 'integer|min:1|max:5',
+        ]);
+
+        $feedback->update($request->all());
+
+        return response()->json($feedback);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateFeedbackRequest $request, Feedback $feedback)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     */
     public function destroy(Feedback $feedback)
     {
-        //
+        $feedback->delete();
+        return response()->noContent();
     }
 }

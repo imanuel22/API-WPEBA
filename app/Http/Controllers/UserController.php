@@ -1,124 +1,78 @@
 <?php
-
 namespace App\Http\Controllers;
 
 use App\Models\User;
-use App\Models\Users;
 use Illuminate\Http\Request;
-use App\Http\Resources\UserResource;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Facades\Validator;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        $user = User::all();
-        return new UserResource(200, 'List Data User', $user);
+        return User::all();
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-         $validator = Validator::make($request->all(), [
-            'profile'=> 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'name'=> 'required|string',
-            'password'=> 'required|password',
-            'email'=> 'required|email',
-            'role'=> 'required',
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|string|min:8',
+            'role' => 'required|in:admin,participant,speaker,organizer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        if ($validator->failed()){
-            return response()->json($validator->errors(),422);
-        };
-        
-        $profile = $request->file('profile');
-        $profile->storeAs('
-        user',$profile->hashName());
-        $user = User::create([
-            'profile'=> $profile->hashName(),
-            'name'=> $request->name,
-            'password'=> bcrypt($request->password),
-            'email'=> $request->email,
-            'role'=> $request->role,
-        ]);
+        $userData = $request->only(['name', 'email', 'role']);
+        $userData['password'] = Hash::make($request->password);
 
-        return new UserResource(201,'Data User',$user);
-    }   
-
-    /**
-     * Display the specified resource.
-     */
-    public function show($id)
-    {
-        $user = User::find($id);
-        return new UserResource(200, 'List Data User', $user);
-    }
-
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, $id)
-    {
-        $validator = Validator::make($request->all(), [
-            'name'=> 'required|string',
-            'email'=> 'required|email',
-            'role'=> 'required',
-        ]);
-
-        if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('images/users', 'public');
+            $userData['image'] = $path;
         }
 
-        $user = User::find($id);
-        if ($request->hasFile('profile')) {
-            $profile = $request->file('profile');
-            $profile->storeAs('
-            user', $profile->hashName());
+        $user = User::create($userData);
 
-            Storage::delete('
-            user/' . basename($user->profile));
-
-            //update post with new image
-            $user->update([
-                'profile'=> $profile->hashName(),
-                'name'=> $request->name,
-                'email'=> $request->email,
-                'role'=> $request->role,
-            ]);
-        } else {
-
-            //update post without image
-            $user->update([
-                'name'=> $request->name,
-                'email'=> $request->email,
-                'role'=> $request->role,
-            ]);
-        }
-
-        //return response
-        return new UserResource(true, 'Data Post Berhasil Diubah!', $user);
+        return response()->json($user, 201);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy($id)
+    public function show(User $user)
     {
-        $post = User::find($id);
-        //delete image
-        Storage::delete('
-        user/'.basename($post->image));
+        $user->image = $user->image ? url('storage/' . $user->image) : null;
+        return response()->json($user);
+    }
 
-        //delete post
-        $post->delete();
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'string|max:255',
+            'email' => 'email|unique:users,email,' . $user->id,
+            'role' => 'in:admin,participant,speaker,organizer',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+        ]);
 
-        //return response
-        return new UserResource(true, 'Data Post Berhasil Dihapus!', null);
+        $userData = $request->only(['name', 'email', 'role']);
+
+        if ($request->hasFile('image')) {
+            if ($user->image) {
+                Storage::disk('public')->delete($user->image);
+            }
+            $path = $request->file('image')->store('images/users', 'public');
+            $userData['image'] = $path;
+        }
+
+        $user->update($userData);
+
+        return response()->json($user, 200);
+    }
+
+    public function destroy(User $user)
+    {
+        if ($user->image) {
+            Storage::disk('public')->delete($user->image);
+        }
+        $user->delete();
+
+        return response()->noContent();
     }
 }
