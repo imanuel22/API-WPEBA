@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Resources\EventResource;
 use App\Models\Event;
 use Illuminate\Http\Request;
 
@@ -8,7 +9,8 @@ class EventController extends Controller
 {
     public function index()
     {
-        return Event::all();
+        $events = Event::all();
+        return new EventResource(true, 'List of Events', $events);
     }
 
     public function store(Request $request)
@@ -22,12 +24,12 @@ class EventController extends Controller
 
         $event = Event::create($request->all());
 
-        return response()->json($event, 201);
+        return new EventResource(true, 'Event Created Successfully', $event);
     }
 
     public function show(Event $event)
     {
-        return response()->json($event);
+        return new EventResource(true, 'Event Details', $event);
     }
 
     public function update(Request $request, Event $event)
@@ -41,12 +43,12 @@ class EventController extends Controller
 
         $event->update($request->all());
 
-        return response()->json($event);
+        return new EventResource(true, 'Event Updated Successfully', $event);
     }
 
     public function destroy(Event $event)
     {
         $event->delete();
-        return response()->noContent();
+        return new EventResource(true, 'Event Deleted Successfully', null);
     }
 }

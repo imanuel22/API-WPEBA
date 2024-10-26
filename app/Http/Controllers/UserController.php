@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Resources\UserResource;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -10,7 +11,8 @@ class UserController extends Controller
 {
     public function index()
     {
-        return User::all();
+        $users = User::all();
+        return new UserResource(true, 'List of Users', $users);
     }
 
     public function store(Request $request)
@@ -33,13 +35,13 @@ class UserController extends Controller
 
         $user = User::create($userData);
 
-        return response()->json($user, 201);
+        return new UserResource(true, 'User Created Successfully', $user);
     }
 
     public function show(User $user)
     {
         $user->image = $user->image ? url('storage/' . $user->image) : null;
-        return response()->json($user);
+        return new UserResource(true, 'User Details', $user);
     }
 
     public function update(Request $request, User $user)
@@ -63,7 +65,7 @@ class UserController extends Controller
 
         $user->update($userData);
 
-        return response()->json($user, 200);
+        return new UserResource(true, 'User Updated Successfully', $user);
     }
 
     public function destroy(User $user)
@@ -73,6 +75,6 @@ class UserController extends Controller
         }
         $user->delete();
 
-        return response()->noContent();
+        return new UserResource(true, 'User Deleted Successfully', null);
     }
 }

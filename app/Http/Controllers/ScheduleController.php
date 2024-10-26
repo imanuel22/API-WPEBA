@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ScheduleResource;
 use App\Models\Schedule;
 use Illuminate\Http\Request;
 
@@ -8,46 +9,46 @@ class ScheduleController extends Controller
 {
     public function index()
     {
-        return Schedule::all();
+        $schedules = Schedule::all();
+        return new ScheduleResource(true, 'List of Schedules', $schedules);
     }
 
     public function store(Request $request)
     {
         $request->validate([
             'event_id' => 'required|exists:events,id',
-            'session_name' => 'required|string',
+            'title' => 'required|string',
             'start_time' => 'required|date_format:H:i',
-            'end_time' => 'required|date_format:H:i',
-            'description' => 'nullable|string',
+            'end_time' => 'required|date_format:H:i|after:start_time'
         ]);
 
         $schedule = Schedule::create($request->all());
 
-        return response()->json($schedule, 201);
+        return new ScheduleResource(true, 'Schedule Created Successfully', $schedule);
     }
 
     public function show(Schedule $schedule)
     {
-        return response()->json($schedule);
+        return new ScheduleResource(true, 'Schedule Details', $schedule);
     }
 
     public function update(Request $request, Schedule $schedule)
     {
         $request->validate([
-            'session_name' => 'string',
+            'title' => 'string',
             'start_time' => 'date_format:H:i',
-            'end_time' => 'date_format:H:i',
-            'description' => 'string',
+            'end_time' => 'date_format:H:i|after:start_time'
         ]);
 
         $schedule->update($request->all());
 
-        return response()->json($schedule);
+        return new ScheduleResource(true, 'Schedule Updated Successfully', $schedule);
     }
 
     public function destroy(Schedule $schedule)
     {
         $schedule->delete();
-        return response()->noContent();
+
+        return new ScheduleResource(true, 'Schedule Deleted Successfully', null);
     }
 }
