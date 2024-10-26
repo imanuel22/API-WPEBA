@@ -22,15 +22,15 @@ class UserController extends Controller
             'email' => 'required|email|unique:users',
             'password' => 'required|string|min:8',
             'role' => 'required|in:admin,participant,speaker,organizer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $userData = $request->only(['name', 'email', 'role']);
         $userData['password'] = Hash::make($request->password);
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('images/users', 'public');
-            $userData['image'] = $path;
+        if ($request->hasFile('profile')) {
+            $path = $request->file('profile')->store('images/users', 'public');
+            $userData['profile'] = $path;
         }
 
         $user = User::create($userData);
@@ -50,17 +50,17 @@ class UserController extends Controller
             'name' => 'string|max:255',
             'email' => 'email|unique:users,email,' . $user->id,
             'role' => 'in:admin,participant,speaker,organizer',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'profile' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         $userData = $request->only(['name', 'email', 'role']);
 
-        if ($request->hasFile('image')) {
+        if ($request->hasFile('profile')) {
             if ($user->image) {
                 Storage::disk('public')->delete($user->image);
             }
-            $path = $request->file('image')->store('images/users', 'public');
-            $userData['image'] = $path;
+            $path = $request->file('profile')->store('images/users', 'public');
+            $userData['profile'] = $path;
         }
 
         $user->update($userData);
