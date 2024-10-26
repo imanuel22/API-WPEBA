@@ -26,11 +26,11 @@ class UserController extends Controller
     public function store(Request $request)
     {
          $validator = Validator::make($request->all(), [
-            'profile'     => 'required|image|mimes:jpeg,png,jpg|max:2048',
-            'name'     => 'required|string',
-            'password'   => 'required|password',
-            'email'   => 'required|email',
-            'role'   => 'required',
+            'profile'=> 'required|image|mimes:jpeg,png,jpg|max:2048',
+            'name'=> 'required|string',
+            'password'=> 'required|password',
+            'email'=> 'required|email',
+            'role'=> 'required',
         ]);
 
         if ($validator->failed()){
@@ -38,13 +38,14 @@ class UserController extends Controller
         };
         
         $profile = $request->file('profile');
-        $profile->storeAs('user',$profile->hashName());
+        $profile->storeAs('
+        user',$profile->hashName());
         $user = User::create([
-            'profile'     => $profile->hashName(),
-            'name'     => $request->name,
-            'password'   => bcrypt($request->password),
-            'email'   => $request->email,
-            'role'   => $request->role,
+            'profile'=> $profile->hashName(),
+            'name'=> $request->name,
+            'password'=> bcrypt($request->password),
+            'email'=> $request->email,
+            'role'=> $request->role,
         ]);
 
         return new UserResource(201,'Data User',$user);
@@ -65,9 +66,9 @@ class UserController extends Controller
     public function update(Request $request, $id)
     {
         $validator = Validator::make($request->all(), [
-            'name'     => 'required|string',
-            'email'   => 'required|email',
-            'role'   => 'required',
+            'name'=> 'required|string',
+            'email'=> 'required|email',
+            'role'=> 'required',
         ]);
 
         if ($validator->fails()) {
@@ -77,24 +78,26 @@ class UserController extends Controller
         $user = User::find($id);
         if ($request->hasFile('profile')) {
             $profile = $request->file('profile');
-            $profile->storeAs('user', $profile->hashName());
+            $profile->storeAs('
+            user', $profile->hashName());
 
-            Storage::delete('user/' . basename($user->profile));
+            Storage::delete('
+            user/' . basename($user->profile));
 
             //update post with new image
             $user->update([
-                'profile'     => $profile->hashName(),
-                'name'     => $request->name,
-                'email'   => $request->email,
-                'role'   => $request->role,
+                'profile'=> $profile->hashName(),
+                'name'=> $request->name,
+                'email'=> $request->email,
+                'role'=> $request->role,
             ]);
         } else {
 
             //update post without image
             $user->update([
-                'name'     => $request->name,
-                'email'   => $request->email,
-                'role'   => $request->role,
+                'name'=> $request->name,
+                'email'=> $request->email,
+                'role'=> $request->role,
             ]);
         }
 
@@ -109,7 +112,8 @@ class UserController extends Controller
     {
         $post = User::find($id);
         //delete image
-        Storage::delete('user/'.basename($post->image));
+        Storage::delete('
+        user/'.basename($post->image));
 
         //delete post
         $post->delete();
