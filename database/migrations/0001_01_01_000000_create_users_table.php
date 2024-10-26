@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('email')->unique();
-            $table->text('profile');
+            $table->text('profile')->nullable();
             $table->string('password');
             $table->enum('role',['admin', 'participant', 'speaker','organizer'])->default('participant');
             // $table->timestamp('email_verified_at')->nullable();

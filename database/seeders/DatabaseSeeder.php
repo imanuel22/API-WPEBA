@@ -11,8 +11,15 @@ class DatabaseSeeder extends Seeder
     /**
      * Seed the application's database.
      */
-    public function run(): void
-    {
-        User::factory(10)->create();
-    }
+    public function run()
+{
+    $this->call([
+        UserSeeder::class,
+        EventSeeder::class,
+        RegistrationSeeder::class,
+        SpeakerSeeder::class,
+        ScheduleSeeder::class,
+        FeedbackSeeder::class,
+    ]);
+}
 }
