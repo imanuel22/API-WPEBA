@@ -10,6 +10,11 @@ use App\Http\Controllers\{
 Route::apiResource('users', UserController::class);
 Route::apiResource('events', EventController::class);
 Route::apiResource('registrations', RegistrationController::class);
-Route::apiResource('speakers', SpeakerController::class);
+Route::apiResource('speakers', SpeakerController::class); //hilang
 Route::apiResource('schedules', ScheduleController::class);
 Route::apiResource('feedback', FeedbackController::class);
+
+
+Route::apiResource('documentation', FeedbackController::class);
+Route::apiResource('tickets', FeedbackController::class);
+    
