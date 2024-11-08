@@ -15,8 +15,12 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::all();
-        return new UserResource(true, 'List of Users', $users);
+        try{
+            $users = User::all();
+            return new UserResource(true, 'List of Users', $users);
+        }catch (Exception $e) {
+            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+        }
     }
 
     public function store(Request $request)
@@ -46,8 +50,13 @@ class UserController extends Controller
 
     public function show(User $user)
     {
-        $user->image = $user->image ? url('storage/user/' . $user->image) : null;
-        return new UserResource(true, 'User Details', $user);
+        try{
+            $user->image = $user->image ? url('storage/user/' . $user->image) : null;
+            return new UserResource(true, 'User Details', $user);
+        }
+        catch (Exception $e) {
+            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+        }
     }
 
     public function update(Request $request, User $user)
@@ -83,12 +92,16 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
-        if ($user->profile) {
-        Storage::disk('public')->delete('user/' . $user->profile);
-    }
-        $user->delete();
-
-        return new UserResource(true, 'User Deleted Successfully');
+        try{
+            if ($user->profile) {
+                Storage::disk('public')->delete('user/' . $user->profile);
+            }
+                $user->delete();
+                return new UserResource(true, 'User Deleted Successfully');
+            }
+        catch(Exception $e){
+            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+        }
     }
 
     public function register(Request $request)
@@ -144,7 +157,7 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
-        $credentials = $request->only('email', 'password');
+        // $credentials = $request->only('email', 'password');
 
         // Validasi input
         $request->validate([
@@ -157,17 +170,20 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Email is not registered',
+                'data'=>[]
             ], 404);
+        }
+
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid email or password',
+            ], 401);
         }
 
         try {
             // Coba membuat token JWT
-            if (!$token = JWTAuth::attempt($credentials)) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'Invalid email or password',
-                ], 401);
-            }
+            $token = JWTAuth::fromUser($user);
         } catch (JWTException $e) {
             return response()->json([
                 'success' => false,
@@ -179,7 +195,7 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'token' => $token,
-            'user' => Auth::user(),
+            'data' =>  $user->only(['id', 'name', 'email', 'role']),
         ], 200);
     }
 
@@ -190,11 +206,13 @@ class UserController extends Controller
         return response()->json([
             'success' => true,
             'token' => $newToken,
+            'data'=>[]
         ], 200);
     } catch (JWTException $e) {
         return response()->json([
             'success' => false,
             'message' => 'Could not refresh token',
+            'data'=>$e->getMessage()
         ], 500);
     }
 }

@@ -7,7 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Casts\Attribute;
-class User extends Authenticatable
+use Tymon\JWTAuth\Contracts\JWTSubject;
+
+class User extends Authenticatable implements JWTSubject
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
@@ -56,5 +58,19 @@ class User extends Authenticatable
     public function feedbacks()
     {
         return $this->hasMany(Feedback::class);
+    }
+
+    // Metode dari JWTSubject
+    public function getJWTIdentifier()
+    {
+        return $this->getKey(); // Mengembalikan identifier unik pengguna (biasanya ID)
+    }
+
+    public function getJWTCustomClaims()
+    {
+        return [
+            'role' => $this->role,
+            'email' => $this->email,
+        ]; // Mengembalikan array klaim tambahan, jika ada
     }
 }

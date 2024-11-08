@@ -14,13 +14,19 @@ return new class extends Migration
         Schema::create('events', function (Blueprint $table) {
             $table->id();
             $table->string('title');
-            $table->text('description')->nullable();
+            $table->text('description');
+            $table->text('image');
+            $table->enum('status', ['upcoming', 'in_progress', 'compfileted'])->default('upcoming');
+            $table->datetime('start_datetime'); 
+            $table->unsignedInteger('duration'); //menit
             $table->string('location');
-            $table->date('date');
-            $table->time('time');
+            $table->string('contact', 100); 
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
+            $table->foreignId('event_category_ids')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.

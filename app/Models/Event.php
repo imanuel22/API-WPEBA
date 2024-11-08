@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -8,25 +9,30 @@ class Event extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['title', 'description', 'location', 'date', 'time'];
+    protected $fillable = [
+        'title',
+        'description',
+        'image',
+        'status',
+        'start_datetime',
+        'duration',
+        'location',
+        'contact',
+        'maps',
+        'user_id',
+        'event_category_id',
+    ];
 
-    public function registrations()
+    // Relasi dengan User
+    public function user()
     {
-        return $this->hasMany(Registration::class);
+        return $this->belongsTo(User::class);
     }
 
-    public function speakers()
-    {
-        return $this->hasMany(Speaker::class);
-    }
-
-    public function schedules()
-    {
-        return $this->hasMany(Schedule::class);
-    }
-
-    public function feedbacks()
-    {
-        return $this->hasMany(Feedback::class);
-    }
+    // Relasi dengan EventCategory
+    // public function category()
+    // {
+    //     return $this->belongsTo(EventCategory::class, 'event_category_id');
+    // }
+    
 }

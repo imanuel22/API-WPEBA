@@ -14,13 +14,16 @@ return new class extends Migration
         Schema::create('registrations', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('event_id')->constrained()->onDelete('cascade');
+            $table->foreignId('ticket_id')->constrained()->onDelete('cascade');
             $table->timestamp('registration_date')->nullable();
             $table->enum('status', ['pending', 'confirmed', 'cancelled'])->default('pending');
-            $table->enum('payment_status', ['unpaid', 'paid'])->default('unpaid');
+            $table->unsignedInteger('total_price');
+            // $table->enum('payment_status', ['pending', 'approved', 'rejected'])->default('pending');
+            $table->text('image_payment')->nullable();
             $table->timestamps();
         });
     }
+
 
     /**
      * Reverse the migrations.
