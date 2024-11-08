@@ -13,6 +13,7 @@ return new class extends Migration
     {
         Schema::create('information', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('event_id')->constrained()->onDelete('cascade');
             $table->string('whatapps',15)->nullable();
             $table->string('telephone',15)->nullable();
             $table->string('facebook',100)->nullable();
