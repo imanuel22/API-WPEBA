@@ -16,13 +16,13 @@ return new class extends Migration
             $table->string('title');
             $table->text('description');
             $table->text('image');
-            $table->enum('status', ['upcoming', 'in_progress', 'compfileted'])->default('upcoming');
+            $table->enum('status', ['upcoming', 'in_progress', 'completed'])->default('upcoming');
             $table->datetime('start_datetime'); 
             $table->unsignedInteger('duration'); //menit
             $table->string('location');
             $table->string('contact', 100); 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('event_category_ids')->nullable()->constrained()->onDelete('cascade');
+            // $table->foreignId('event_category_ids')->nullable()->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }

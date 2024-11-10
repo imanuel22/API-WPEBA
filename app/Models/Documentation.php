@@ -5,30 +5,23 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Feedback extends Model
+class Documentation extends Model
 {
     use HasFactory;
 
-    // Nama tabel jika berbeda dari konvensi
-    protected $table = 'feedback';
+    // Nama tabel, jika berbeda dari konvensi
+    protected $table = 'documentations';
 
     // Field yang bisa diisi secara massal
     protected $fillable = [
+        'image',
+        'description',
         'event_id',
-        'user_id',
-        'feedback_text',
-        'rating',
     ];
 
     // Relasi ke model Event
     public function event()
     {
         return $this->belongsTo(Event::class);
-    }
-
-    // Relasi ke model User
-    public function user()
-    {
-        return $this->belongsTo(User::class);
     }
 }

@@ -50,15 +50,15 @@ class User extends Authenticatable implements JWTSubject
         ];
     }
 
-    public function registrations()
-    {
-        return $this->hasMany(Registration::class);
-    }
+    // public function registrations()
+    // {
+    //     return $this->hasMany(Registration::class);
+    // }
 
-    public function feedbacks()
-    {
-        return $this->hasMany(Feedback::class);
-    }
+    // public function feedbacks()
+    // {
+    //     return $this->hasMany(Feedback::class);
+    // }
 
     // Metode dari JWTSubject
     public function getJWTIdentifier()

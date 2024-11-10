@@ -68,47 +68,51 @@ class EventController extends Controller
     }
 
     public function update(Request $request, $id)
-    {
-        try {
-            $request->validate([
-                'title' => 'nullable|string',
-                'description' => 'nullable|string',
-                'status' => 'nullable|in:upcoming,in_progress,completed',
-                'start_datetime' => 'nullable|date',
-                'duration' => 'nullable|integer',
-                'location' => 'nullable|string',
-                'contact' => 'nullable|string|max:100',
-                'maps' => 'nullable|string|max:255',
-                'user_id' => 'nullable|exists:users,id',
-                'event_category_ids' => 'nullable|array|exists:event_categories,id',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
-            ]);
+{
+    try {
+        $request->validate([
+            'title' => 'nullable|string',
+            'description' => 'nullable|string',
+            'status' => 'nullable|in:upcoming,in_progress,completed',
+            'start_datetime' => 'nullable|date',
+            'duration' => 'nullable|integer',
+            'location' => 'nullable|string',
+            'contact' => 'nullable|string|max:100',
+            'maps' => 'nullable|string|max:255',
+            'user_id' => 'nullable|exists:users,id',
+            'event_category_ids' => 'nullable|array|exists:categories,id',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+        ]);
 
-            $event = Event::findOrFail($id);
+        $event = Event::findOrFail($id);
 
-            if ($request->hasFile('image')) {
-                if ($event->image && Storage::exists('public/event/' . $event->image)) {
-                    Storage::delete('public/event/' . $event->image);
-                }
-
-                $event->image = basename($request->file('image')->store('event', 'public'));
+        // Menangani upload gambar
+        if ($request->hasFile('image')) {
+            if ($event->image && Storage::exists('public/event/' . $event->image)) {
+                Storage::delete('public/event/' . $event->image);
             }
 
-            $event->update($request->only([
-                'title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'maps', 'user_id'
-            ]));
-
-            if ($request->has('event_category_ids')) {
-                $event->categories()->sync($request->event_category_ids); 
-            }
-
-            return (new ApiResponseSuccessResource( 'Event Updated Successfully', $event))->response();
-        } catch (ValidationException $e) {
-            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
-        } catch (Exception $e) {
-            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
+            $event->image = basename($request->file('image')->store('event', 'public'));
         }
+
+        // Update event
+        $event->update($request->only([
+            'title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'maps', 'user_id'
+        ]));
+
+        // Update kategori jika ada
+        if ($request->has('event_category_ids')) {
+            $event->categories()->sync($request->event_category_ids); // Sync kategori baru
+        }
+
+        return (new ApiResponseSuccessResource('Event Updated Successfully', $event))->response();
+    } catch (ValidationException $e) {
+        return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
+    } catch (Exception $e) {
+        return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
     }
+}
+
 
     public function destroy($id)
     {
