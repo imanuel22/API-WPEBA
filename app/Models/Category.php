@@ -13,8 +13,10 @@ class Category extends Model
     protected $fillable = ['name'];
 
     // Relasi many-to-many ke Event
-    public function events()
+public function events()
     {
-        return $this->belongsToMany(Event::class, 'event_categories');
+        return $this->belongsToMany(Event::class, 'event_categories', 'category_id', 'event_id');
     }
+
+
 }

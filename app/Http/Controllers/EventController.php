@@ -28,16 +28,16 @@ class EventController extends Controller
         try {
             $request->validate([
                 'title' => 'required|string|max:255',
-                'description' => 'required|string',
-                'image' => 'required|image|mimes:jpeg,png,jpg|max:500',
-                'status' => 'required|in:upcoming,in_progress,completed',
-                'start_datetime' => 'required|date',
-                'duration' => 'required|integer',
-                'location' => 'required|string',
-                'contact' => 'required|string|max:100',
-                'maps' => 'nullable|string|max:255',
+                'description' => 'nullable|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+                'status' => 'nullable|in:upcoming,in_progress,completed',
+                'start_datetime' => 'nullable|date',
+                'duration' => 'nullable|integer',
+                'location' => 'nullable|string',
+                'contact' => 'nullable|string|max:100',
+                // 'maps' => 'nullable|string|max:255',
                 'user_id' => 'required|exists:users,id',
-                'event_category_ids' => 'nullable|array|exists:event_categories,id', 
+            'event_category_ids' => 'required|array|exists:category,id',
             ]);
 
             $userData = $request->only(['title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'maps', 'user_id']);
@@ -46,8 +46,9 @@ class EventController extends Controller
             $event = Event::create($userData);
 
             if ($request->has('event_category_ids')) {
-                $event->categories()->sync($request->event_category_ids); 
-            }
+    $event->categories()->sync($request->event_category_ids); // Sync kategori baru
+}
+
 
             return (new ApiResponseSuccessResource('Event Created Successfully', $event, 201))->response();
         } catch (ValidationException $e) {
@@ -80,7 +81,7 @@ class EventController extends Controller
             'contact' => 'nullable|string|max:100',
             'maps' => 'nullable|string|max:255',
             'user_id' => 'nullable|exists:users,id',
-            'event_category_ids' => 'nullable|array|exists:categories,id',
+'event_category_ids' => 'nullable|array|exists:category,id',
             'image' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
         ]);
 
@@ -99,11 +100,12 @@ class EventController extends Controller
         $event->update($request->only([
             'title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'maps', 'user_id'
         ]));
-
+        
         // Update kategori jika ada
-        if ($request->has('event_category_ids')) {
-            $event->categories()->sync($request->event_category_ids); // Sync kategori baru
-        }
+if ($request->has('event_category_ids')) {
+    $event->categories()->sync($request->event_category_ids); // Sync kategori baru
+}
+
 
         return (new ApiResponseSuccessResource('Event Updated Successfully', $event))->response();
     } catch (ValidationException $e) {

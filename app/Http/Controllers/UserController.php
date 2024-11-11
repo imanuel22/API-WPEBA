@@ -156,48 +156,54 @@ class UserController extends Controller
     }
 
     public function login(Request $request)
-    {
-        // $credentials = $request->only('email', 'password');
-
-        // Validasi input
+{
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
-        $user = User::where('email', $request->email)->first();
-        if (!$user) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Email is not registered',
-                'data'=>[]
-            ], 404);
-        }
-
-        if (!Hash::check($request->password, $user->password)) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Invalid email or password',
-            ], 401);
-        }
-
-        try {
-            // Coba membuat token JWT
-            $token = JWTAuth::fromUser($user);
-        } catch (JWTException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Could not create token',
-            ], 500);
-        }
-
-        // Jika berhasil, kembalikan token
+    // Validasi input
+    
+    // Cek apakah user ada di database
+    $user = User::where('email', $request->email)->first();
+    
+    if (!$user) {
         return response()->json([
-            'success' => true,
-            'token' => $token,
-            'data' =>  $user->only(['id', 'name', 'email', 'role']),
-        ], 200);
+            'success' => false,
+            'message' => 'Email is not registered',
+            'data' => [],
+        ], 404);
     }
+
+    // Verifikasi password yang dikirimkan
+    if (!Hash::check($request->password, $user->password)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Invalid email or password',
+        ], 401);
+    }
+
+    try {
+        // Coba membuat token JWT
+        $token = JWTAuth::fromUser($user);
+    } catch (JWTException $e) {
+        // Jika gagal membuat token JWT
+        return response()->json([
+            'success' => false,
+            'message' => 'Could not create token, please try again later.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+
+    // Jika berhasil, kembalikan token dan data user
+    return response()->json([
+        'success' => true,
+        'message' => 'Login successful',
+        'token' => $token,
+        'data' => $user->only(['id', 'name', 'email', 'role']), // Anda dapat menyesuaikan data yang ingin dikembalikan
+    ], 200);
+}
+
 
     public function refresh()
 {

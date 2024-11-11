@@ -8,13 +8,14 @@ return new class extends Migration
 
 {
     public function up(): void
-    {
-        Schema::create('event_categories', function (Blueprint $table) {
-            $table->foreignId('event_id')->constrained()->onDelete('cascade');
-            $table->foreignId('category_id')->constrained('category')->onDelete('cascade');
-            $table->primary(['event_id', 'category_id']);
-        });
-    }
+{
+    Schema::create('event_categories', function (Blueprint $table) {
+        $table->foreignId('event_id')->constrained()->onDelete('cascade');
+        $table->foreignId('category_id')->constrained('category')->onDelete('cascade');
+        $table->primary(['event_id', 'category_id']);
+    });
+}
+
 
     public function down(): void
     {

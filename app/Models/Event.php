@@ -36,10 +36,12 @@ class Event extends Model
     }
 
     // Relasi many-to-many ke Category
-    public function categories()
+// Di model Event
+public function categories()
     {
-        return $this->belongsToMany(Category::class, 'event_categories');
+        return $this->belongsToMany(Category::class, 'event_categories', 'event_id', 'category_id');
     }
+
 
     // Relasi one-to-many ke Feedback
     public function feedbacks()
