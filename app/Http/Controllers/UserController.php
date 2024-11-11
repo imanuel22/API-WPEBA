@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Controllers;
 
 use Exception;
@@ -8,18 +9,23 @@ use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
-use Illuminate\Support\Facades\Auth;
 use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Support\Facades\Auth; // Pastikan ini ada
+use App\Http\Resources\ApiResponseSuccessResource; // Jika menggunakan ApiResponseSuccessResource
+use App\Http\Resources\ApiResponseErrorResource; // Jika menggunakan ApiResponseErrorResource
+use Illuminate\Support\Facades\Validator; // Untuk Validator jika diperlukan
+
+
 class UserController extends Controller
 {
     public function index()
     {
-        try{
+        try {
             $users = User::all();
-            return new UserResource(true, 'List of Users', $users);
-        }catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+            return (new ApiResponseSuccessResource('List of Users', $users))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
         }
     }
 
@@ -27,201 +33,181 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'name' => "required|string",
-                'email' => "required|email:rfc,dns|unique:users,email",
-                'password' => "required|min:8",
+                'name' => 'required|string|max:255',
+                'email' => 'required|email:rfc,dns|unique:users,email',
+                'password' => 'required|min:8',
                 'role' => 'required|in:admin,participant,organizer',
-                'profile' => 'required|image|mimes:jpeg,png,jpg|max:500',
+                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
             ]);
 
-            $userData = $request->only(['name', 'email','role']);
+            $userData = $request->only(['name', 'email', 'role']);
             $userData['password'] = Hash::make($request->password);
-            $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
+
+            if ($request->hasFile('profile')) {
+                $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
+            }
 
             $user = User::create($userData);
 
-            return (new UserResource(true, 'User Created Successfully',$user,201))->response();
+            return (new ApiResponseSuccessResource('User Created Successfully', $user, 201))->response();
         } catch (ValidationException $e) {
-            return (new UserResource(false, 'Validation Error', $e->errors(), 422))->response();        
+            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
         } catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
         }
     }
 
-    public function show(User $user)
+    public function show($id)
     {
-        try{
-            $user->image = $user->image ? url('storage/user/' . $user->image) : null;
-            return new UserResource(true, 'User Details', $user);
-        }
-        catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+        try {
+            $user = User::findOrFail($id);
+            $user->profile = $user->profile ? url('storage/user/' . $user->profile) : null;
+            return (new ApiResponseSuccessResource('User Details', $user))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('User Not Found', ['error' => $e->getMessage()], 404))->response();
         }
     }
 
-    public function update(Request $request, User $user)
+    public function update(Request $request, $id)
     {
-        try{
+        try {
             $request->validate([
-                'name' => 'string',
-                'email' => 'email|unique:users,email,' . $user->id,
-                'role' => 'in:admin,participant,speaker,organizer',
-                'profile' => 'nullabl|image|mimes:jpg,jpeg,png|max:500'
+                'name' => 'nullable|string|max:255',
+                'email' => 'nullable|email|unique:users,email,' . $id,
+                'role' => 'nullable|in:admin,participant,organizer',
+                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
             ]);
-            
-            $userData = $request->only(['name', 'email', 'role','profile']);
+
+            $user = User::findOrFail($id);
+
+            $userData = $request->only(['name', 'email', 'role']);
+
+            // Handle profile picture update
             if ($request->hasFile('profile')) {
-                if ($user->profile) {
-                    Storage::disk('public')->delete('user/' . $user->profile);
+                if ($user->profile && Storage::exists('public/user/' . $user->profile)) {
+                    Storage::delete('public/user/' . $user->profile);
                 }
 
-                $profilePath = $request->file('profile')->store('user', 'public');
-                $userData['profile'] = basename($profilePath);
+                $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
             }
 
             $user->update($userData);
 
-            return (new UserResource(true, 'User Updated Successfully',$user,200))->response();
+            return (new ApiResponseSuccessResource('User Updated Successfully', $user))->response();
         } catch (ValidationException $e) {
-            return (new UserResource(false, 'Validation Error', $e->errors(), 422))->response();        
+            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
         } catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
         }
-        
     }
 
-    public function destroy(User $user)
+    public function destroy($id)
     {
-        try{
-            if ($user->profile) {
-                Storage::disk('public')->delete('user/' . $user->profile);
+        try {
+            $user = User::findOrFail($id);
+
+            // Delete profile image if it exists
+            if ($user->profile && Storage::exists('public/user/' . $user->profile)) {
+                Storage::delete('public/user/' . $user->profile);
             }
-                $user->delete();
-                return new UserResource(true, 'User Deleted Successfully');
-            }
-        catch(Exception $e){
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+
+            $user->delete();
+
+            return (new ApiResponseSuccessResource('User Deleted Successfully', null))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('User Not Found', ['error' => $e->getMessage()], 404))->response();
         }
     }
 
     public function register(Request $request)
     {
         try {
-    
             $request->validate([
-                'name' => "required|string",
-                'email' => "required|email:rfc,dns|unique:users,email",
-                'password' => "required|min:8",
+                'name' => 'required|string|max:255',
+                'email' => 'required|email:rfc,dns|unique:users,email',
+                'password' => 'required|min:8',
                 'role' => 'nullable|in:participant',
-                'profile' => 'required|image|mimes:jpeg,png,jpg|max:500',
+                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
             ]);
 
             $userData = $request->only(['name', 'email']);
             $userData['role'] = $request->role ?? 'participant';
             $userData['password'] = Hash::make($request->password);
-            $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
+
+            if ($request->hasFile('profile')) {
+                $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
+            }
 
             $user = User::create($userData);
 
-            return (new UserResource(true, 'User Created Successfully',$user,201))->response();
+            return (new ApiResponseSuccessResource('User Registered Successfully', $user, 201))->response();
         } catch (ValidationException $e) {
-            return (new UserResource(false, 'Validation Error', $e->errors(), 422))->response();        
+            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
         } catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
-        }
-    }
-
-    public function resetpassword(Request $request,User $user){
-        try{
-            $request->validate([
-                'old_password' => "required|string",
-                'current_password' => "required|min:8",
-                'confirm_password' => "required|min:8|same:current_password",
-            ]);
-
-            if (!Hash::check($request->old_password, $user->password)) {
-                return (new UserResource(false, 'Old password is incorrect', [
-                'old_password' => ['The provided old password is incorrect.']
-            ], 422))->response();
-            }
-            $user->password = Hash::make($request->current_password);
-
-            $user->save();
-            return (new UserResource(true, 'User password  update Successfully',[],200))->response();
-        } catch (ValidationException $e) {
-            return (new UserResource(false, 'Validation Error', $e->errors(), 422))->response();        
-        } catch (Exception $e) {
-            return (new UserResource(false,'An error occurred',$e->getMessage(),500))->response();
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
         }
     }
 
     public function login(Request $request)
-{
+    {
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
         ]);
 
-    // Validasi input
-    
-    // Cek apakah user ada di database
-    $user = User::where('email', $request->email)->first();
-    
-    if (!$user) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Email is not registered',
-            'data' => [],
-        ], 404);
-    }
+        // Check if the user exists in the database
+        $user = User::where('email', $request->email)->first();
 
-    // Verifikasi password yang dikirimkan
-    if (!Hash::check($request->password, $user->password)) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Invalid email or password',
-        ], 401);
-    }
+        if (!$user) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email is not registered',
+                'data' => [],
+            ], 404);
+        }
 
-    try {
-        // Coba membuat token JWT
-        $token = JWTAuth::fromUser($user);
-    } catch (JWTException $e) {
-        // Jika gagal membuat token JWT
-        return response()->json([
-            'success' => false,
-            'message' => 'Could not create token, please try again later.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
+        // Verify the password
+        if (!Hash::check($request->password, $user->password)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid email or password',
+            ], 401);
+        }
 
-    // Jika berhasil, kembalikan token dan data user
-    return response()->json([
-        'success' => true,
-        'message' => 'Login successful',
-        'token' => $token,
-        'data' => $user->only(['id', 'name', 'email', 'role']), // Anda dapat menyesuaikan data yang ingin dikembalikan
-    ], 200);
-}
+        try {
+            // Try to create JWT token
+            $token = JWTAuth::fromUser($user);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not create token, please try again later.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
 
-
-    public function refresh()
-{
-    try {
-        $newToken = JWTAuth::refresh(JWTAuth::getToken());
         return response()->json([
             'success' => true,
-            'token' => $newToken,
-            'data'=>[]
+            'message' => 'Login successful',
+            'token' => $token,
+            'data' => $user->only(['id', 'name', 'email', 'role']),
         ], 200);
-    } catch (JWTException $e) {
-        return response()->json([
-            'success' => false,
-            'message' => 'Could not refresh token',
-            'data'=>$e->getMessage()
-        ], 500);
     }
-}
 
-
+    public function refresh()
+    {
+        try {
+            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            return response()->json([
+                'success' => true,
+                'token' => $newToken,
+                'data' => [],
+            ], 200);
+        } catch (JWTException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Could not refresh token',
+                'data' => $e->getMessage(),
+            ], 500);
+        }
+    }
 }
