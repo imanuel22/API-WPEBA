@@ -119,7 +119,7 @@ class UserController extends Controller
         }
     }
 
-    public function     (Request $request)
+    public function register(Request $request)
     {
         try {
             $request->validate([
