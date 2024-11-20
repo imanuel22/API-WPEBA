@@ -11,6 +11,9 @@ use App\Http\Controllers\{
     TicketController,AuthController
 };
 
+
+Route::get('/email/verify/{id}', [AuthController::class,'verify'])->name('verification.verify');
+
 Route::apiResource('users', UserController::class);
 Route::post('users/register', [UserController::class,'register']);
 Route::patch('users/{user}/resetpassword', [UserController::class,'resetpassword']);
@@ -29,3 +32,6 @@ Route::apiResource('tickets', TicketController::class);
 Route::apiResource('documentation', FeedbackController::class);
 Route::apiResource('tickets', FeedbackController::class);
 Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
+use Illuminate\Support\Facades\Mail;
+
+

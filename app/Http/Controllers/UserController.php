@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth; // Pastikan ini ada
-use App\Http\Resources\ApiResponseSuccessResource; // Jika menggunakan ApiResponseSuccessResource
-use App\Http\Resources\ApiResponseErrorResource; // Jika menggunakan ApiResponseErrorResource
 use Illuminate\Support\Facades\Validator; // Untuk Validator jika diperlukan
+use App\Http\Resources\ApiResponseErrorResource; // Jika menggunakan ApiResponseErrorResource
+use App\Http\Resources\ApiResponseSuccessResource; // Jika menggunakan ApiResponseSuccessResource
 
 
 class UserController extends Controller
@@ -138,7 +139,8 @@ class UserController extends Controller
                 $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
             }
 
-            $user = User::create($userData);
+        $user = User::create($userData); // Create the user
+        $user->sendEmailVerificationNotification(); // Send email verification
 
             return (new ApiResponseSuccessResource('User Registered Successfully', $user, 201))->response();
         } catch (ValidationException $e) {
@@ -150,6 +152,7 @@ class UserController extends Controller
 
     public function login(Request $request)
     {
+
         $request->validate([
             'email' => 'required|email',
             'password' => 'required|string|min:6',
@@ -162,7 +165,7 @@ class UserController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Email is not registered',
-                'data' => [],
+                'data' => ['email'=>$request->email,'user'=>$user],
             ], 404);
         }
 
@@ -189,7 +192,7 @@ class UserController extends Controller
             'success' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'data' => $user->only(['id', 'name', 'email', 'role']),
+            'data' => $user->only(['id', 'name', 'email', 'role','profile']),
         ], 200);
     }
 

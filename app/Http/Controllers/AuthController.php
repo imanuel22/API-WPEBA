@@ -55,4 +55,23 @@ class AuthController extends Controller
             return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
         }
     }
+
+    public function verify($id, Request $request){
+        if (!$request->hasValidSignature()) {
+            return response()->json([
+                'status'=>false,
+                'message'=>'Verifikasi email gagal',
+            ],400);
+        }
+        $user = User::findOrFail($id);
+
+        if(!$user->hasVerifiedEmail()){
+            $user->markEmailAsVerified();
+        }
+        return redirect()->to('/');
+    }
+
+    // public function resean() {
+        
+    // }
 }

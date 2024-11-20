@@ -16,8 +16,14 @@ class EventController extends Controller
     public function index()
     {
         try {
-            $events = Event::all();
-            return (new ApiResponseSuccessResource('List of Events', $events))->response();
+            $events = Event::with([
+                'user',
+                'information',
+                'categories',
+                'feedbacks.user',
+                'tickets',
+                'documentations'
+            ])->get();            return (new ApiResponseSuccessResource('List of Events', $events))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
         }
@@ -37,11 +43,14 @@ class EventController extends Controller
                 'contact' => 'nullable|string|max:100',
                 // 'maps' => 'nullable|string|max:255',
                 'user_id' => 'required|exists:users,id',
-            'event_category_ids' => 'required|array|exists:category,id',
+            'event_category_ids' => 'nullable|array|exists:category,id',
             ]);
 
             $userData = $request->only(['title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'maps', 'user_id']);
-            $userData['image'] = basename($request->file('image')->store('event', 'public'));
+            if($request->has('image')){
+
+                $userData['image'] = basename($request->file('image')->store('event', 'public'));
+            }
 
             $event = Event::create($userData);
 
@@ -61,7 +70,14 @@ class EventController extends Controller
     public function show($id)
     {
         try {
-            $event = Event::findOrFail($id);
+            $event = Event::with([
+            'user',
+            'information',
+            'categories',
+            'feedbacks.user',
+            'tickets',
+            'documentations'
+        ])->findOrFail($id);
             return (new ApiResponseSuccessResource( 'Event Details', $event))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('Event Not Found', ['error' => $e->getMessage()], 404))->response();
