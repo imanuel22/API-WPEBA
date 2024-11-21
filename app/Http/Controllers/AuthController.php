@@ -4,36 +4,35 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Event;
+use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\OrganizerRegisteredMail;
 use Illuminate\Validation\ValidationException;
-use App\Http\Resources\ApiResponseSuccessResource;
 use App\Http\Resources\ApiResponseErrorResource;
+use App\Http\Resources\ApiResponseSuccessResource;
 
 class AuthController extends Controller
 {
-    /**
-     * Register a new organizer and create an event associated with the organizer.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function registerOrganizer(Request $request)
+    public function registerOrganizerEvent(Request $request)
     {
         try {
             // Validasi inputan
             $request->validate([
                 'name' => 'required|string|max:255',
-                'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:8|confirmed',
+                'email' => 'required|email:rfc,dns|unique:users,email', // Validasi email lebih ketat
                 'title' => 'required|string|max:255',
             ]);
+
+            // Generate password random
+            $randomPassword = Str::random(12); // Password acak sepanjang 12 karakter
 
             // Buat user dengan role 'organizer'
             $user = User::create([
                 'name' => $request->name,
                 'email' => $request->email,
-                'password' => Hash::make($request->password),
+                'password' => Hash::make($randomPassword), // Hash password
                 'role' => 'organizer',
             ]);
 
@@ -44,9 +43,15 @@ class AuthController extends Controller
                 'status' => 'upcoming',  // Set status default event
             ]);
 
+            // Kirim email berisi password kepada user
+            Mail::to($user->email)->send(new OrganizerRegisteredMail($user, $randomPassword)); // Mengirimkan email
+            $user->sendEmailVerificationNotification();
+
+            // Kembalikan respons sukses
             return (new ApiResponseSuccessResource('Organizer account and event created successfully!', [
                 'user' => $user,
-                'event' => $event
+                'event' => $event,
+                'password' => $randomPassword
             ], 201))->response();
 
         } catch (ValidationException $e) {

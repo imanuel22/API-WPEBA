@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\{
     CategoryController,
@@ -12,26 +11,49 @@ use App\Http\Controllers\{
 };
 
 
-Route::get('/email/verify/{id}', [AuthController::class,'verify'])->name('verification.verify');
 
 Route::apiResource('users', UserController::class);
-Route::post('users/register', [UserController::class,'register']);
-Route::patch('users/{user}/resetpassword', [UserController::class,'resetpassword']);
-Route::post('/refresh', [UserController::class, 'refresh']);
 Route::post('/login', [UserController::class, 'login']);
 
-
-Route::apiResource('events', EventController::class);
+// Route::apiResource('events', EventController::class);
 Route::apiResource('category', CategoryController::class);
 Route::apiResource('registrations', RegistrationController::class);
-Route::patch('registrations/verification', [RegistrationController::class,'verification']);
 Route::apiResource('feedback', FeedbackController::class);
 Route::apiResource('tickets', TicketController::class);
 
+//tanpa middleware(jwt);
+Route::post('/register', [UserController::class,'register']);
+Route::get('/email/verify/{id}', [AuthController::class,'verify'])->name('verification.verify');
 
-Route::apiResource('documentation', FeedbackController::class);
-Route::apiResource('tickets', FeedbackController::class);
-Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
-use Illuminate\Support\Facades\Mail;
+
+Route::get('/events',[EventController::class,'index']);
+
+Route::middleware('jwt')->group(function(){
+    //user
+    Route::get('/events/{id}',[EventController::class,'show']);
+    Route::patch('users/{user}/resetpassword', [UserController::class,'resetpassword']);
+    
+    //event
+    
+    //information
+    
+    //ticket
+    
+    //feedback
+    
+    //registration
+    Route::patch('registrations/verification', [RegistrationController::class,'verification']);
+    
+    
+    //auth
+    Route::post('/refresh', [UserController::class, 'refresh']);
+    Route::post('/logout', [UserController::class, 'logout']);
+});
+Route::post('/register-organizer-event', [AuthController::class, 'registerOrganizerEvent']);
+
+
+// Route::apiResource('documentation', FeedbackController::class);
+// Route::apiResource('tickets', FeedbackController::class);
+
 
 
