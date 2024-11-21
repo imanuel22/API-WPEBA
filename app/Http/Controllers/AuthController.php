@@ -35,6 +35,7 @@ class AuthController extends Controller
                 'password' => Hash::make($randomPassword), // Hash password
                 'role' => 'organizer',
             ]);
+            $user->markEmailAsVerified();
 
             // Buat event yang terkait dengan user yang baru dibuat
             $event = Event::create([
@@ -45,7 +46,6 @@ class AuthController extends Controller
 
             // Kirim email berisi password kepada user
             Mail::to($user->email)->send(new OrganizerRegisteredMail($user, $randomPassword)); // Mengirimkan email
-            $user->sendEmailVerificationNotification();
 
             // Kembalikan respons sukses
             return (new ApiResponseSuccessResource('Organizer account and event created successfully!', [
