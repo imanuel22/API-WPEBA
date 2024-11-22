@@ -49,7 +49,7 @@ Route::middleware('jwt')->group(function(){
     Route::post('/refresh', [UserController::class, 'refresh']);
     Route::post('/logout', [UserController::class, 'logout']);
 });
-Route::post('/register-organizer-event', [AuthController::class, 'registerOrganizerEvent']);
+Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
 
 
 // Route::apiResource('documentation', FeedbackController::class);

@@ -15,14 +15,13 @@ use App\Http\Resources\ApiResponseSuccessResource;
 
 class AuthController extends Controller
 {
-    public function registerOrganizerEvent(Request $request)
+    public function registerOrganizer(Request $request)
     {
         try {
             // Validasi inputan
             $request->validate([
                 'name' => 'required|string|max:255',
                 'email' => 'required|email:rfc,dns|unique:users,email', // Validasi email lebih ketat
-                'title' => 'required|string|max:255',
             ]);
 
             // Generate password random
@@ -37,20 +36,12 @@ class AuthController extends Controller
             ]);
             $user->markEmailAsVerified();
 
-            // Buat event yang terkait dengan user yang baru dibuat
-            $event = Event::create([
-                'title' => $request->title,
-                'user_id' => $user->id,
-                'status' => 'upcoming',  // Set status default event
-            ]);
-
             // Kirim email berisi password kepada user
             Mail::to($user->email)->send(new OrganizerRegisteredMail($user, $randomPassword)); // Mengirimkan email
 
             // Kembalikan respons sukses
             return (new ApiResponseSuccessResource('Organizer account and event created successfully!', [
                 'user' => $user,
-                'event' => $event,
                 'password' => $randomPassword
             ], 201))->response();
 
