@@ -29,7 +29,7 @@ class UserFactory extends Factory
             // 'role' => '',
             'profile' => 'image.jpg',
             'password' => static::$password ??= Hash::make('password'),
-            // 'email_verified_at' => now(),
+            'email_verified_at' => now(),
             // 'remember_token' => Str::random(10),
         ];
     }

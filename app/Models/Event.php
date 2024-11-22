@@ -16,7 +16,6 @@ class Event extends Model
         'start_datetime',
         'duration',
         'location',
-        'contact',
         'maps',
         'user_id',
         'event_category_id',
@@ -59,4 +58,9 @@ public function categories()
     {
         return $this->hasMany(Documentation::class);
     }
+    public function images()
+    {
+        return $this->belongsToMany(Image::class, 'event_image');
+    }
+
 }
