@@ -41,7 +41,6 @@ public function store(Request $request)
             'start_datetime' => 'nullable|date',
             'duration' => 'nullable|integer',
             'location' => 'nullable|string',
-            'contact' => 'nullable|string|max:100',
             'user_id' => 'required|exists:users,id',
             'event_category_ids' => 'nullable|array|exists:category,id',
         ]);
@@ -100,7 +99,6 @@ public function store(Request $request)
             'start_datetime' => 'nullable|date',
             'duration' => 'nullable|integer',
             'location' => 'nullable|string',
-            'contact' => 'nullable|string|max:100',
             'user_id' => 'nullable|exists:users,id',
             'event_category_ids' => 'nullable|array|exists:category,id',
         ]);
