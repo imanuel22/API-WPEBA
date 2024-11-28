@@ -11,7 +11,6 @@ use App\Http\Controllers\{
     AuthController,
     DocumentationController
 };
-use App\Models\Documentation;
 
 Route::apiResource('events', EventController::class)->only(['index', 'show']);
 Route::apiResource('users', UserController::class)->only(['index', 'show']);
