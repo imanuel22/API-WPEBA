@@ -33,21 +33,21 @@ Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verif
 
 Route::middleware('jwt')->group(function () {
     // Users
-    Route::apiResource('users', UserController::class);
+    Route::apiResource('users', UserController::class)->except(['index', 'show']);
     Route::patch('users/{user}/resetpassword', [UserController::class, 'resetpassword']);
     // Events
-    Route::apiResource('events', EventController::class);
+    Route::apiResource('events', EventController::class)->except(['index', 'show']);
     // Category
-    Route::apiResource('category', CategoryController::class);
+    Route::apiResource('category', CategoryController::class)->except(['index', 'show']);
     // Registrations
-    Route::apiResource('registrations', RegistrationController::class);
+    Route::apiResource('registrations', RegistrationController::class)->except(['index', 'show']);
     Route::patch('registrations/verification', [RegistrationController::class, 'verification']);
     // Feedback
-    Route::apiResource('feedback', FeedbackController::class);
+    Route::apiResource('feedback', FeedbackController::class)->except(['index', 'show']);
     // Tickets
-    Route::apiResource('tickets', TicketController::class);
+    Route::apiResource('tickets', TicketController::class)->except(['index', 'show']);
     // Documentation
-    Route::apiResource('documentation',DocumentationController::class);
+    Route::apiResource('documentation',DocumentationController::class)->except(['index', 'show']);
     // Auth
     Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
     Route::post('/refresh', [AuthController::class, 'refresh']);
