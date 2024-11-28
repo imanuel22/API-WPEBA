@@ -93,7 +93,7 @@ class AuthController extends Controller
         if(!$user->hasVerifiedEmail()){
             $user->markEmailAsVerified();
         }
-        return redirect()->to('/');
+        return redirect()->to(env('WEB_URL').'/login');
     }
 
     public function registerParticipant(Request $request)
