@@ -7,53 +7,51 @@ use App\Http\Controllers\{
     EventController, 
     RegistrationController,
     FeedbackController,
-    TicketController,AuthController
+    TicketController,
+    AuthController,
+    DocumentationController
 };
+use App\Models\Documentation;
 
+Route::apiResource('events', EventController::class)->only(['index', 'show']);
+Route::apiResource('users', UserController::class)->only(['index', 'show']);
+Route::apiResource('category', CategoryController::class)->only(['index', 'show']);
+Route::apiResource('registrations', RegistrationController::class)->only(['index', 'show']);
+Route::apiResource('feedback', FeedbackController::class)->only(['index', 'show']);
+Route::apiResource('tickets', TicketController::class)->only(['index', 'show']);
+Route::apiResource('documentation',DocumentationController::class)->only(['index', 'show']);
 
+// Auth
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/register', [AuthController::class, 'registerParticipant']);
+Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify');
 
-Route::apiResource('users', UserController::class);
-Route::post('/login', [UserController::class, 'login']);
+Route::middleware('jwt')->group(function () {
+    // Users
+    Route::apiResource('users', UserController::class);
+    Route::patch('users/{user}/resetpassword', [UserController::class, 'resetpassword']);
 
-// Route::apiResource('events', EventController::class);
-Route::apiResource('category', CategoryController::class);
-Route::apiResource('registrations', RegistrationController::class);
-Route::apiResource('feedback', FeedbackController::class);
-Route::apiResource('tickets', TicketController::class);
+    // Events
+    Route::apiResource('events', EventController::class);
 
-//tanpa middleware(jwt);
-Route::post('/register', [UserController::class,'register']);
-Route::get('/email/verify/{id}', [AuthController::class,'verify'])->name('verification.verify');
+    // Category
+    Route::apiResource('category', CategoryController::class);
 
+    // Registrations
+    Route::apiResource('registrations', RegistrationController::class);
+    Route::patch('registrations/verification', [RegistrationController::class, 'verification']);
 
-Route::get('/events',[EventController::class,'index']);
+    // Feedback
+    Route::apiResource('feedback', FeedbackController::class);
 
-Route::middleware('jwt')->group(function(){
-    //user
-    Route::get('/events/{id}',[EventController::class,'show']);
-    Route::patch('users/{user}/resetpassword', [UserController::class,'resetpassword']);
-    
-    //event
-    
-    //information
-    
-    //ticket
-    
-    //feedback
-    
-    //registration
-    Route::patch('registrations/verification', [RegistrationController::class,'verification']);
-    
-    
-    //auth
-    Route::post('/refresh', [UserController::class, 'refresh']);
-    Route::post('/logout', [UserController::class, 'logout']);
+    // Tickets
+    Route::apiResource('tickets', TicketController::class);
+
+    // Documentation
+    Route::apiResource('documentation',DocumentationController::class);
+
+    // Auth
+    Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
+    Route::post('/refresh', [AuthController::class, 'refresh']);
+    Route::post('/logout', [AuthController::class, 'logout']);
 });
-Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
-
-
-// Route::apiResource('documentation', FeedbackController::class);
-// Route::apiResource('tickets', FeedbackController::class);
-
-
-
