@@ -5,16 +5,17 @@ namespace App\Http\Controllers;
 use Exception;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Tymon\JWTAuth\Facades\JWTAuth;
 use App\Http\Resources\UserResource;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Validation\ValidationException;
-use Tymon\JWTAuth\Facades\JWTAuth;
 use Tymon\JWTAuth\Exceptions\JWTException;
+use Illuminate\Validation\ValidationException;
 use Illuminate\Support\Facades\Auth; // Pastikan ini ada
-use App\Http\Resources\ApiResponseSuccessResource; // Jika menggunakan ApiResponseSuccessResource
-use App\Http\Resources\ApiResponseErrorResource; // Jika menggunakan ApiResponseErrorResource
 use Illuminate\Support\Facades\Validator; // Untuk Validator jika diperlukan
+use App\Http\Resources\ApiResponseErrorResource; // Jika menggunakan ApiResponseErrorResource
+use App\Http\Resources\ApiResponseSuccessResource; // Jika menggunakan ApiResponseSuccessResource
 
 
 class UserController extends Controller
@@ -138,7 +139,8 @@ class UserController extends Controller
                 $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
             }
 
-            $user = User::create($userData);
+        $user = User::create($userData); // Create the user
+        $user->sendEmailVerificationNotification(); // Send email verification
 
             return (new ApiResponseSuccessResource('User Registered Successfully', $user, 201))->response();
         } catch (ValidationException $e) {
@@ -155,18 +157,27 @@ class UserController extends Controller
             'password' => 'required|string|min:6',
         ]);
 
-        // Check if the user exists in the database
+        // Periksa apakah pengguna ada di database
         $user = User::where('email', $request->email)->first();
 
         if (!$user) {
             return response()->json([
                 'success' => false,
                 'message' => 'Email is not registered',
-                'data' => [],
+                'data' => ['email' => $request->email],
             ], 404);
         }
 
-        // Verify the password
+        // Periksa apakah email telah diverifikasi
+        if (is_null($user->email_verified_at)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Email has not been verified',
+                'data' => ['email' => $request->email],
+            ], 403); // 403 Forbidden
+        }
+
+        // Verifikasi password
         if (!Hash::check($request->password, $user->password)) {
             return response()->json([
                 'success' => false,
@@ -175,7 +186,7 @@ class UserController extends Controller
         }
 
         try {
-            // Try to create JWT token
+            // Coba buat token JWT
             $token = JWTAuth::fromUser($user);
         } catch (JWTException $e) {
             return response()->json([
@@ -189,25 +200,73 @@ class UserController extends Controller
             'success' => true,
             'message' => 'Login successful',
             'token' => $token,
-            'data' => $user->only(['id', 'name', 'email', 'role']),
+            'data' => $user->only(['id', 'name', 'email', 'role', 'profile']),
         ], 200);
     }
 
-    public function refresh()
+
+   public function refresh()
     {
         try {
-            $newToken = JWTAuth::refresh(JWTAuth::getToken());
+            // Periksa apakah token ada
+            if (!$token = JWTAuth::getToken()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Token not provided',
+                    'data' => [],
+                ], 400); // 400 Bad Request
+            }
+
+            // Refresh token
+            $newToken = JWTAuth::refresh($token);
+
             return response()->json([
                 'success' => true,
+                'message' => 'Token refreshed successfully',
                 'token' => $newToken,
                 'data' => [],
-            ], 200);
-        } catch (JWTException $e) {
+            ], 200); // 200 OK
+        } catch (\Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token has expired and cannot be refreshed',
+                'data' => $e->getMessage(),
+            ], 401); // 401 Unauthorized
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Token is invalid',
+                'data' => $e->getMessage(),
+            ], 401); // 401 Unauthorized
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
             return response()->json([
                 'success' => false,
                 'message' => 'Could not refresh token',
                 'data' => $e->getMessage(),
-            ], 500);
+            ], 500); // 500 Internal Server Error
         }
     }
+
+    public function logout(Request $request)
+    {
+        try {
+            // Periksa apakah token disertakan
+            if (!$token = JWTAuth::getToken()) {
+                return (new ApiResponseErrorResource('Token not provided', null, 400))->response();
+            }
+
+            // Invalidasi token
+            JWTAuth::invalidate($token);
+
+            return (new ApiResponseSuccessResource('Successfully logged out', null, 200))->response();
+        } catch (\Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
+            return (new ApiResponseErrorResource('Invalid token', $e->getMessage(), 401))->response();
+        } catch (\Tymon\JWTAuth\Exceptions\JWTException $e) {
+            return (new ApiResponseErrorResource('Token could not be invalidated', $e->getMessage(), 500))->response();
+        } catch (\Exception $e) {
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
+        }
+    }
+
+
 }

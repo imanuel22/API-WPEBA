@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('profile')->nullable();
             $table->string('password');
             $table->enum('role',['admin', 'participant','organizer'])->default('participant');
-            // $table->timestamp('email_verified_at')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
             // $table->rememberToken();
             $table->timestamps();
         });
