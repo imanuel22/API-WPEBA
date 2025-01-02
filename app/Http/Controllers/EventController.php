@@ -23,7 +23,8 @@ class EventController extends Controller
                 'categories',
                 'feedbacks.user',
                 'tickets',
-                'documentations'
+                'documentations',
+                'images'
             ])->get();            return (new ApiResponseSuccessResource('List of Events', $events))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
@@ -36,21 +37,23 @@ public function store(Request $request)
         $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:500', // Validasi array gambar
-            'status' => 'nullable|in:upcoming,in_progress,completed',
+            'status' => 'nullable|in:upcoming',
             'start_datetime' => 'nullable|date',
             'duration' => 'nullable|integer',
             'location' => 'nullable|string',
+            'contact' => 'nullable|string',
             'user_id' => 'required|exists:users,id',
             'event_category_ids' => 'nullable|array|exists:category,id',
+            'images' => 'nullable|array|max:5', // Allow up to 5 images
+            'images.*' => 'image|mimes:jpeg,png,jpg|max:2048', // Each image must be a valid image file
         ]);
 
         $eventData = $request->only(['title', 'description', 'status', 'start_datetime', 'duration', 'location', 'contact', 'user_id']);
         $event = Event::create($eventData);
 
-        if ($request->has('images')) {
+        if ($request->hasFile('images')) {
             foreach ($request->file('images') as $key => $image) {
-                if ($key < 5) { // Maksimal 5 gambar
+                if ($key < 5) { // Maximum 5 images
                     $filename = basename($image->store('event', 'public'));
                     $imageModel = Image::create(['filename' => $filename]);
                     $event->images()->attach($imageModel->id);
@@ -65,7 +68,7 @@ public function store(Request $request)
         return (new ApiResponseSuccessResource('Event Created Successfully', $event->load('images'), 201))->response();
     } catch (ValidationException $e) {
         return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
-    } catch (Exception $e) {
+    }catch (Exception $e) {
         return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
     }
 }
@@ -80,7 +83,8 @@ public function store(Request $request)
             'categories',
             'feedbacks.user',
             'tickets',
-            'documentations'
+            'documentations',
+            'images'
         ])->findOrFail($id);
             return (new ApiResponseSuccessResource( 'Event Details', $event))->response();
         } catch (Exception $e) {

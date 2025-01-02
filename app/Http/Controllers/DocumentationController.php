@@ -18,7 +18,7 @@ class DocumentationController extends Controller
     public function index()
     {
         try {
-            $documentations = Documentation::all();
+            $documentations = Documentation::with('event')->get();
             return (new ApiResponseSuccessResource('List of Documentations', $documentations))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
@@ -68,7 +68,7 @@ class DocumentationController extends Controller
     public function show($id)
     {
         try {
-            $documentation = Documentation::findOrFail($id);
+            $documentation = Documentation::with('event')->findOrFail($id);
             $documentation->image = $documentation->image ? url('storage/documentations/' . $documentation->image) : null;
             return (new ApiResponseSuccessResource('Documentation Details', $documentation))->response();
         } catch (Exception $e) {
@@ -102,7 +102,7 @@ class DocumentationController extends Controller
             }
 
             $documentation->update($data);
-
+            
             return (new ApiResponseSuccessResource('Documentation Updated Successfully', $documentation))->response();
         } catch (ValidationException $e) {
             return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();

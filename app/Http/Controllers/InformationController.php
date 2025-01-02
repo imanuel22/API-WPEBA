@@ -30,8 +30,8 @@ class InformationController extends Controller
             // Validate the request data
             $request->validate([
                 'event_id' => 'required|exists:events,id',  // Ensure event exists
-                'whatapps' => 'nullable|string|max:15',
-                'telephone' => 'nullable|string|max:15',
+                'whatapps' => 'nullable|numeric|min:15',
+                'telephone' => 'nullable|numeric|min:15',
                 'facebook' => 'nullable|string|max:100',
                 'instagram' => 'nullable|string|max:100',
                 'email' => 'nullable|string|email|max:100',

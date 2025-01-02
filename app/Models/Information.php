@@ -15,7 +15,7 @@ class Information extends Model
     // Field yang bisa diisi secara massal
     protected $fillable = [
         'event_id',
-        'whatsapp',
+        'whatapps',
         'telephone',
         'facebook',
         'instagram',
