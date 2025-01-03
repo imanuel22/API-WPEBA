@@ -20,7 +20,6 @@ return new class extends Migration
             $table->datetime('start_datetime')->nullable(); 
             $table->unsignedInteger('duration')->nullable(); //menit
             $table->string('location')->nullable();
-            $table->string('contact', 100)->nullable(); 
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });

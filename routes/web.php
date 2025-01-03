@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Mail;
 Route::get('/', function () {
     return view('welcome');
 });
+<<<<<<< HEAD
 Route::get('/test-email', function () {
     try {
         Mail::raw('This is a test email from Laravel', function ($message) {
@@ -19,3 +20,5 @@ Route::get('/test-email', function () {
     }
 });
 
+=======
+>>>>>>> 7ca4756807df7a2bd75175f59ba1580b361a1f3e

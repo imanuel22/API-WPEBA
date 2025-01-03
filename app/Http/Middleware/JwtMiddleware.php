@@ -26,11 +26,8 @@ class JwtMiddleware
             if (!$token) {
                 return response()->json(['error' => 'Token not provided'], 400);
             }
-
-            // Cek apakah token valid
-            $user = JWTAuth::parseToken()->authenticate(); // Ini akan mengautentikasi berdasarkan token
-
-            // Jika token invalid atau expired, exception akan dilemparkan
+            JWTAuth::parseToken()->authenticate();
+            return $next($request);
         } catch (TokenExpiredException $e) {
             return response()->json(['error' => 'Token has expired'], 401);
         } catch (TokenInvalidException $e) {
@@ -38,7 +35,6 @@ class JwtMiddleware
         } catch (JWTException $e) {
             return response()->json(['error' => 'Token not found or parsing error'], 400);
         }
-
-        return $next($request);
+        
     }
 }

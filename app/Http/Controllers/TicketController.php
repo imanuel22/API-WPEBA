@@ -16,7 +16,7 @@ class TicketController extends Controller
     public function index()
     {
         try {
-            $tickets = Ticket::all(); // Retrieve all tickets
+            $tickets = Ticket::with('event')->get(); // Retrieve all tickets
             return (new ApiResponseSuccessResource('List of Tickets', $tickets))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
@@ -55,7 +55,7 @@ class TicketController extends Controller
     public function show($id)
     {
         try {
-            $ticket = Ticket::findOrFail($id); // Retrieve the ticket by ID
+            $ticket = Ticket::with('event')->findOrFail($id); // Retrieve the ticket by ID
             return (new ApiResponseSuccessResource('Ticket Details', $ticket))->response();
         } catch (Exception $e) {
             return (new ApiResponseErrorResource('Ticket Not Found', ['error' => $e->getMessage()], 404))->response();

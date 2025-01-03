@@ -79,19 +79,20 @@ public function verification(Request $request, $id)
     try {
         // Validate the request data to allow only 'confirmed' or 'cancelled' statuses
         $request->validate([
+            
             'status' => 'required|in:confirmed,cancelled',
         ]);
 
         // Find the registration by ID
         $registration = Registration::findOrFail($id);
-
+        
         // If status is 'cancelled', remove the payment image from storage if it exists
-        if ($request->status === 'cancelled' && $registration->image_payment) {
-            if (Storage::exists('public/payments/' . $registration->image_payment)) {
-                Storage::delete('public/payments/' . $registration->image_payment);
-            }
-            $registration->image_payment = null; // Set image_payment to null
-        }
+        // if ($request->status === 'cancelled' && $registration->image_payment) {
+        //     if (Storage::exists('public/payments/' . $registration->image_payment)) {
+        //         Storage::delete('public/payments/' . $registration->image_payment);
+        //     }
+        //     $registration->image_payment = null; // Set image_payment to null
+        // }
 
         // Update only the status field
         $registration->status = $request->status;

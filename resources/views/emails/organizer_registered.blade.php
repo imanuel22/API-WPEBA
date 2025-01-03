@@ -8,6 +8,7 @@
 </head>
 
 <body>
+    
     <h2>Hello, {{ $user->name }}</h2>
     <p>Welcome to our platform as an Organizer!</p>
     <p>Your account has been created successfully. Here are your login details:</p>

@@ -1,53 +1,81 @@
 <?php
 namespace App\Http\Controllers;
 
-use App\Http\Resources\FeedbackResource;
+use Exception;
 use App\Models\Feedback;
 use Illuminate\Http\Request;
+use App\Http\Resources\ApiResponseSuccessResource;
+use App\Http\Resources\ApiResponseErrorResource;
+use Illuminate\Validation\ValidationException;
 
 class FeedbackController extends Controller
 {
     public function index()
     {
-        $feedbacks = Feedback::all();
-        return new FeedbackResource(true, 'List of Feedbacks', $feedbacks);
+        try {
+            $feedbacks = Feedback::with(['user'])->get();
+            return (new ApiResponseSuccessResource('List of Feedbacks', $feedbacks))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
+        }
     }
 
     public function store(Request $request)
     {
-        $request->validate([
-            'user_id' => 'required|exists:users,id',
-            'event_id' => 'required|exists:events,id',
-            'comment' => 'required|string',
-            'rating' => 'required|integer|min:1|max:5'
-        ]);
+        try {
+            $request->validate([
+                'user_id' => 'required|exists:users,id',
+                'event_id' => 'required|exists:events,id',
+                'comment' => 'required|string',
+                'rating' => 'required|integer|min:1|max:5'
+            ]);
 
-        $feedback = Feedback::create($request->all());
-
-        return new FeedbackResource(true, 'Feedback Created Successfully', $feedback);
+            $feedback = Feedback::create($request->only(['user_id', 'event_id', 'comment', 'rating']));
+            return (new ApiResponseSuccessResource('Feedback Created Successfully', $feedback, 201))->response();
+        } catch (ValidationException $e) {
+            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
+        }
     }
 
-    public function show(Feedback $feedback)
+    public function show($id)
     {
-        return new FeedbackResource(true, 'Feedback Details', $feedback);
+        try {
+            $feedback = Feedback::with('user')->findOrFail($id);
+            return (new ApiResponseSuccessResource('Feedback Details', $feedback))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('Feedback Not Found', ['error' => $e->getMessage()], 404))->response();
+        }
     }
 
-    public function update(Request $request, Feedback $feedback)
+    public function update(Request $request, $id)
     {
-        $request->validate([
-            'comment' => 'string',
-            'rating' => 'integer|min:1|max:5'
-        ]);
+        try {
+            $request->validate([
+                'comment' => 'nullable|string',
+                'rating' => 'nullable|integer|min:1|max:5'
+            ]);
 
-        $feedback->update($request->all());
+            $feedback = Feedback::findOrFail($id);
+            $feedback->update($request->only(['comment', 'rating']));
 
-        return new FeedbackResource(true, 'Feedback Updated Successfully', $feedback);
+            return (new ApiResponseSuccessResource('Feedback Updated Successfully', $feedback))->response();
+        } catch (ValidationException $e) {
+            return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('Feedback Not Found', ['error' => $e->getMessage()], 404))->response();
+        }
     }
 
-    public function destroy(Feedback $feedback)
+    public function destroy($id)
     {
-        $feedback->delete();
-
-        return new FeedbackResource(true, 'Feedback Deleted Successfully', null);
+        try {
+            $feedback = Feedback::findOrFail($id);
+            $feedback->delete();
+            return (new ApiResponseSuccessResource('Feedback Deleted Successfully', null))->response();
+        } catch (Exception $e) {
+            return (new ApiResponseErrorResource('Feedback Not Found', ['error' => $e->getMessage()], 404))->response();
+        }
     }
 }
