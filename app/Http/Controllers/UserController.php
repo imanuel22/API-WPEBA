@@ -26,7 +26,7 @@ class UserController extends Controller
             $users = User::all();
             return (new ApiResponseSuccessResource('List of Users', $users))->response();
         } catch (Exception $e) {
-            return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 500))->response();
+            return (new ApiResponseErrorResource('An error occurred', ['error' => $e->getMessage()], 2048))->response();
         }
     }
 
@@ -38,7 +38,7 @@ class UserController extends Controller
                 'email' => 'required|email:rfc,dns|unique:users,email',
                 'password' => 'required|min:8',
                 'role' => 'required|in:admin,participant,organizer',
-                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
             $userData = $request->only(['name', 'email', 'role']);
@@ -54,7 +54,7 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
         } catch (Exception $e) {
-            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 2048))->response();
         }
     }
 
@@ -76,7 +76,7 @@ class UserController extends Controller
                 'name' => 'nullable|string|max:255',
                 'email' => 'nullable|email|unique:users,email,' . $id,
                 'role' => 'nullable|in:admin,participant,organizer',
-                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+                'profile' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
             $user = User::findOrFail($id);
@@ -98,7 +98,7 @@ class UserController extends Controller
         } catch (ValidationException $e) {
             return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();
         } catch (Exception $e) {
-            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
+            return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 2048))->response();
         }
     }
 

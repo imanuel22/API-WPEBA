@@ -33,11 +33,14 @@ class TicketController extends Controller
                 'name' => 'required|string|max:255',
                 'price' => 'required|integer',
                 'quantity' => 'required|integer',
-                'image' => 'required|image|mimes:jpeg,png,jpg|max:500',
+                'payment_method'=>'required|string',
+                'payment_number'=>'required|string',
+                'payment_name'=>'required|string',
+                'image' => 'required|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
             // Handle image upload
-            $ticketData = $request->only(['event_id', 'name', 'price', 'quantity']);
+            $ticketData = $request->only(['event_id', 'name', 'price', 'quantity','payment_method','payment_number','payment_name']);
             $ticketData['image'] = basename($request->file('image')->store('tickets', 'public'));
 
             // Create the ticket record
@@ -71,7 +74,10 @@ class TicketController extends Controller
                 'name' => 'nullable|string|max:255',
                 'price' => 'nullable|integer',
                 'quantity' => 'nullable|integer',
-                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+                'payment_method'=>'required|string',
+                'payment_number'=>'required|string',
+                'payment_name'=>'required|string',
+                'image' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             ]);
 
             // Find the ticket by ID
@@ -89,7 +95,7 @@ class TicketController extends Controller
             }
 
             // Update ticket with the provided data
-            $ticket->update($request->only(['name', 'price', 'quantity']));
+            $ticket->update($request->only(['name', 'price', 'quantity','payment_method','payment_number','payment_name']));
 
             return (new ApiResponseSuccessResource('Ticket Updated Successfully', $ticket))->response();
         } catch (ValidationException $e) {

@@ -98,7 +98,7 @@ public function store(Request $request)
         $request->validate([
             'title' => 'nullable|string',
             'description' => 'nullable|string',
-            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:500',
+            'images.*' => 'nullable|image|mimes:jpeg,png,jpg|max:2048',
             'status' => 'nullable|in:upcoming,in_progress,completed',
             'start_datetime' => 'nullable|date',
             'duration' => 'nullable|integer',
