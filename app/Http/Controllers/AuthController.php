@@ -16,6 +16,8 @@ use Tymon\JWTAuth\Exceptions\JWTException;
 use Illuminate\Validation\ValidationException;
 use App\Http\Resources\ApiResponseErrorResource;
 use App\Http\Resources\ApiResponseSuccessResource;
+use Tymon\JWTAuth\Exceptions\TokenExpiredException;
+use Tymon\JWTAuth\Exceptions\TokenInvalidException;
 
 class AuthController extends Controller
 {
@@ -223,7 +225,7 @@ class AuthController extends Controller
         }
     }
 
-    public function logout(Request $request)
+        public function logout(Request $request)
     {
         try {
             // Periksa apakah token disertakan
@@ -241,6 +243,23 @@ class AuthController extends Controller
             return (new ApiResponseErrorResource('Token could not be invalidated', $e->getMessage(), 500))->response();
         } catch (\Exception $e) {
             return (new ApiResponseErrorResource('An error occurred', $e->getMessage(), 500))->response();
+        }
+    }
+    function checkToken() {
+        try {
+            // Cek apakah token ada dan valid
+            $token = JWTAuth::getToken();
+            if (!$token) {
+                return response()->json(['status'=>false,'message' => 'Token not provided'], 400);
+            }
+            JWTAuth::parseToken()->authenticate();
+            return response()->json(['status'=>true,'message' => 'Token is valid',],200);
+        } catch (TokenExpiredException $e) {
+            return response()->json(['status'=>false,'message' => 'Token has expired'], 401);
+        } catch (TokenInvalidException $e) {
+            return response()->json(['status'=>false,'message' => 'Token is invalid 1'], 401);
+        } catch (JWTException $e) {
+            return response()->json(['status'=>false,'message' => 'Token not found or parsing error'], 400);
         }
     }
 }

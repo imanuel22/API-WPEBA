@@ -18,6 +18,9 @@ class Ticket extends Model
         'name',
         'price',
         'quantity',
+        'payment_method',
+            'payment_number',
+            'payment_name',
         'image',
     ];
 

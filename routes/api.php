@@ -33,6 +33,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/register', [AuthController::class, 'registerParticipant']);
 Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify');
+Route::get('/checktoken',[AuthController::class,'checkToken']);
+Route::post('/refresh', [AuthController::class, 'refresh']);
 
 Route::middleware('jwt')->group(function () {
     // Users
@@ -54,6 +56,5 @@ Route::middleware('jwt')->group(function () {
     Route::apiResource('documentation',DocumentationController::class)->except(['index', 'show']);
     // Auth
     Route::post('/register-organizer', [AuthController::class, 'registerOrganizer']);
-    Route::post('/refresh', [AuthController::class, 'refresh']);
     Route::post('/logout', [AuthController::class, 'logout']);
 });

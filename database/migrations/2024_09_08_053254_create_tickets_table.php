@@ -17,6 +17,9 @@ return new class extends Migration
             $table->string('name');
             $table->unsignedInteger('price');
             $table->unsignedInteger('quantity');
+            $table->string('payment_method');
+            $table->string('payment_number');
+            $table->string('payment_name');
             $table->text('image');
             $table->timestamps();
         });
