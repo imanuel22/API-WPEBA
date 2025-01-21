@@ -43,13 +43,12 @@ class UserController extends Controller
 
             $userData = $request->only(['name', 'email', 'role']);
             $userData['password'] = Hash::make($request->password);
-
             if ($request->hasFile('profile')) {
                 $userData['profile'] = basename($request->file('profile')->store('user', 'public'));
             }
 
             $user = User::create($userData);
-
+                $user->markEmailAsVerified();
             return (new ApiResponseSuccessResource('User Created Successfully', $user, 201))->response();
         } catch (ValidationException $e) {
             return (new ApiResponseErrorResource('Validation Error', $e->errors(), 422))->response();

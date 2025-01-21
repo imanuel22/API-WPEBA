@@ -29,14 +29,15 @@ Route::apiResource('tickets', TicketController::class)->only(['index', 'show']);
 // Documentation
 Route::apiResource('documentation',DocumentationController::class)->only(['index', 'show']);
 // Auth
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/register', [AuthController::class, 'registerParticipant']);
-Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify');
+Route::middleware('throttle:10,1')->post('/login', [AuthController::class, 'login']);
+// Route::post('/login', [AuthController::class, 'login']);
+// Route::post('/register', [AuthController::class, 'registerParticipant']);
+Route::post('/register', [UserController::class, 'store']);
+Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify')->middleware('signed');
 Route::get('/checktoken',[AuthController::class,'checkToken']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
 
-Route::middleware('jwt')->group(function () {
+Route::middleware('jwt','throttle:10,1')->group(function () {
     // Users
     Route::apiResource('users', UserController::class)->except(['index', 'show']);
     Route::patch('users/{user}/resetpassword', [UserController::class, 'resetpassword']);
