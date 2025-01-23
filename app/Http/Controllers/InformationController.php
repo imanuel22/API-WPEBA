@@ -70,7 +70,7 @@ class InformationController extends Controller
     {
         try {
             // Validate the request data
-            $request->validate([
+            $request->validate(rules: [
                 'whatapps' => 'nullable|string|max:15',
                 'telephone' => 'nullable|string|max:15',
                 'facebook' => 'nullable|string|max:100',
