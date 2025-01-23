@@ -84,18 +84,18 @@ class AuthController extends Controller
 
 
     public function verify($id, Request $request){
-        if (!$request->hasValidSignature()) {
-            return response()->json([
-                'status'=>false,
-                'message'=>'Verifikasi email gagal',
-            ],400);
-        }
+        // if (!$request->hasValidSignature()) {
+        //     return response()->json([
+        //         'status'=>false,
+        //         'message'=>'Verifikasi email gagal',
+        //     ],400);
+        // }
         $user = User::findOrFail($id);
 
         if(!$user->hasVerifiedEmail()){
             $user->markEmailAsVerified();
         }
-        return redirect()->to(env('WEB_URL').'/login');
+        return redirect()->to('https://wpeba.test/login');
     }
 
     public function registerParticipant(Request $request)
@@ -132,7 +132,7 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email',
-            'password' => 'required|string|min:6',
+            'password' => 'required|min:6',
         ]);
 
         // Periksa apakah pengguna ada di database

@@ -46,8 +46,14 @@ class RegistrationController extends Controller
                 $registrationData['image_payment'] = basename($request->file('image_payment')->store('payments', 'public'));
             }
 
+            $ticket = Ticket::findOrFail($registrationData['ticket_id']);
+            $quantity = $ticket->quantity - 1;
+            $ticket->update(['quantity'=>$quantity]);
+
             // Create the registration record
             $registration = Registration::create($registrationData);
+
+
 
             return (new ApiResponseSuccessResource('Registration Created Successfully', $registration, 201))->response();
         } catch (ValidationException $e) {
@@ -97,6 +103,11 @@ public function verification(Request $request, $id)
         // Update only the status field
         $registration->status = $request->status;
         $registration->save();
+        if($request->status == 'cancelled'){
+            $ticket = Ticket::findOrFail($registration->ticket_id);
+            $quantity = $ticket->quantity + 1;
+            $ticket->update(['quantity'=>$quantity]);
+        };
 
         return (new ApiResponseSuccessResource('Registration status updated successfully', $registration))->response();
     } catch (ValidationException $e) {

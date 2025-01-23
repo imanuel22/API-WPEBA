@@ -17,7 +17,7 @@ use App\Http\Controllers\{
 Route::apiResource('events', EventController::class)->only(['index', 'show']);
 Route::apiResource('information', InformationController::class)->only(['index', 'show']);
 // Users
-Route::apiResource('users', UserController::class)->only(['index', 'show']);
+// Route::apiResource('users', UserController::class)->only(['index', 'show']);
 // Category
 Route::apiResource('category', CategoryController::class)->only(['index', 'show']);
 // Registrations
@@ -31,15 +31,15 @@ Route::apiResource('documentation',DocumentationController::class)->only(['index
 // Auth
 Route::middleware('throttle:10,1')->post('/login', [AuthController::class, 'login']);
 // Route::post('/login', [AuthController::class, 'login']);
-// Route::post('/register', [AuthController::class, 'registerParticipant']);
-Route::post('/register', [UserController::class, 'store']);
-Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify')->middleware('signed');
+Route::post('/register', [AuthController::class, 'registerParticipant']);
+// Route::post('/register', [UserController::class, 'store']);
+Route::get('/email/verify/{id}', [AuthController::class, 'verify'])->name('verification.verify');
 Route::get('/checktoken',[AuthController::class,'checkToken']);
 Route::post('/refresh', [AuthController::class, 'refresh']);
 
 Route::middleware('jwt','throttle:10,1')->group(function () {
     // Users
-    Route::apiResource('users', UserController::class)->except(['index', 'show']);
+    Route::apiResource('users', UserController::class);
     Route::patch('users/{user}/resetpassword', [UserController::class, 'resetpassword']);
     // Events
     Route::apiResource('events', EventController::class)->except(['index', 'show']);

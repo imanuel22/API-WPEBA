@@ -37,6 +37,9 @@ class InformationController extends Controller
                 'email' => 'nullable|string|email|max:100',
                 'website' => 'nullable|string|max:100',
             ]);
+            if (empty($request->whatapps) && empty($request->telephone) && empty($request->facebook) && empty($request->instagram) && empty($request->email) && empty($request->website)) {
+                return (new ApiResponseErrorResource('Field Error', 'Setidaknya satu field harus diisi', 422))->response();
+            }
 
             // Store the new information record
             $information = Information::create($request->only([
